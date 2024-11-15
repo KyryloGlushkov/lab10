@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casino roulette</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            background: radial-gradient(circle, rgba(32,7,72,1) 0%, rgba(9,9,121,1) 35%, rgba(2,0,36,1) 100%);
+            color: #fff;
+            overflow: hidden;
+            padding: 0 10px;
+        }
+        #game-container {
+            text-align: center;
+            width: 100%;
+            max-width: 320px;
+            background: #111;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 
+                0 0 10px #00e5ff, 
+                0 0 20px #00e5ff, 
+                0 0 30px #00e5ff, 
+                0 0 40px #00e5ff, 
+                0 0 50px #00e5ff, 
+                inset 0 0 20px #888;
+            position: relative;
+            border: 5px solid #00e5ff;
+        }
+        #game-title {
+            font-size: 24px;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 10px;
+            background: #111;
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-transform: uppercase;
+            color: #fff;
+            text-shadow: 
+                0 0 5px #fff, 
+                0 0 10px #00e5ff, 
+                0 0 15px #00e5ff, 
+                0 0 20px #00e5ff, 
+                0 0 30px #00e5ff;
+        }
+        #user-info {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+        #generate-btn {
+            background-color: #00e5ff;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            margin-top: 10px;
+            box-shadow: 0 0 10px #00e5ff, 0 0 20px #00e5ff, 0 0 30px #00e5ff;
+        }
+        #generate-btn:hover {
+            background-color: #00bfff;
+            box-shadow: 0 0 15px #00e5ff, 0 0 25px #00e5ff, 0 0 35px #00e5ff;
+        }
+        #slot-machine {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .column {
+            display: grid;
+            grid-template-rows: repeat(3, 1fr);
+            gap: 8px;
+            width: 80px;
+        }
+        .column img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            transition: transform 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+        #attempt-info {
+            font-size: 16px;
+            color: #ddd;
+            margin-top: 10px;
+        }
+        #col-3 {
+            visibility: hidden; 
+        }
+
+        @media (max-width: 600px) {
+            #game-container {
+                width: 90%;
+                max-width: 280px;
+            }
+            #game-title {
+                font-size: 20px;
+            }
+            #user-info {
+                font-size: 16px;
+            }
+            #generate-btn {
+                font-size: 18px;
+            }
+            .column {
+                width: 60px;
+            }
+            .column img {
+                width: 60px;
+                height: 60px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            #game-title {
+                font-size: 18px;
+            }
+            #generate-btn {
+                font-size: 16px;
+            }
+            .column {
+                width: 50px;
+            }
+            .column img {
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="game-title">WWE Roulette</div>
+        <div id="user-info">
+            <span id="user-name">User</span><br>
+            <span id="attempt-info">Try 1 of 3</span>
+        </div>
+        <button id="generate-btn">🎰 Spin</button>
+        <div id="slot-machine">
+            <div class="column" id="col-1"></div>
+            <div class="column" id="col-2"></div>
+            <div class="column" id="col-3"></div>
+        </div>
+    </div>
+    <script>
+        const images = [
+            'https://w7.pngwing.com/pngs/743/123/png-transparent-wwe-raw-women-s-championship-wwe-smackdown-women-s-championship-professional-wrestling-championship-wwe-women-s-championship-title-emblem-professional-wrestling-women-in-wwe.png',
+            'https://static.wikia.nocookie.net/wwe-2k-universe-mode-gg92/images/7/7b/WWE_World_Heavyweight_Championship.png/revision/latest?cb=20171121210430',
+            'https://static.wikia.nocookie.net/wwe2kuniverse/images/3/30/Universal_Championship.png/revision/latest?cb=20200520144723',
+            'https://i.pinimg.com/736x/aa/a7/61/aaa761482d959aa1c784c67c03fc3568.jpg',
+            'https://wallpapers.com/images/hd/w-w-e-tag-team-championship-belt-h3z15tq2eqhj5vqq-2.png'
+        ];
+
+        let attempts = 0;
+        let userName = prompt("Enter your name:");
+        if (!userName) userName = "User";
+        document.getElementById('user-name').innerText = userName;
+
+        function spinColumn(column, duration) {
+            let count = 0;
+            const interval = setInterval(() => {
+                const usedImages = new Set();
+                column.innerHTML = '';
+                for (let i = 0; i < 3; i++) {
+                    let image;
+                    do {
+                        image = images[Math.floor(Math.random() * images.length)];
+                    } while (usedImages.has(image));
+                    usedImages.add(image);
+                    const img = document.createElement('img');
+                    img.src = image;
+                    column.appendChild(img);
+                }
+                count++;
+                if (count > duration) clearInterval(interval);
+            }, 100);
+        }
+
+        function generateImages() {
+            attempts++;
+            document.getElementById('attempt-info').innerText = `Attempt ${attempts} of 3`;
+            if (attempts > 3) {
+                alert("You lost!");
+                resetGame();
+                return;
+            }
+
+            const columns = [
+                document.getElementById('col-1'),
+                document.getElementById('col-2'),
+                document.getElementById('col-3')
+            ];
+
+            spinColumn(columns[0], 10);  
+            setTimeout(() => spinColumn(columns[1], 20), 200);  
+            setTimeout(() => {
+                columns[2].style.visibility = 'visible';  
+                spinColumn(columns[2], 30);  
+                setTimeout(checkWin, 2000); 
+            }, 400);
+        }
+
+        function checkWin() {
+            const columns = [1, 2, 3].map(col => Array.from(document.getElementById(`col-${col}`).children).map(img => img.src));
+            const win = columns.some(col => col[0] === col[1] && col[1] === col[2]);
+            if (win) {
+                alert("Congrats! You win!");
+                resetGame();
+            } else if (attempts === 3) {
+                alert("No attempts left. You lost!");
+                resetGame();
+            }
+        }
+
+        function resetGame() {
+            attempts = 0;
+            document.getElementById('attempt-info').innerText = "Attempt 1 of 3";
+            [1, 2, 3].forEach(col => {
+                document.getElementById(`col-${col}`).innerHTML = '';
+                document.getElementById(`col-${col}`).style.visibility = col === 3 ? 'hidden' : 'visible';
+            });
+        }
+
+        document.getElementById('generate-btn').addEventListener('click', generateImages);
+    </script>
+</body>
+</html>
